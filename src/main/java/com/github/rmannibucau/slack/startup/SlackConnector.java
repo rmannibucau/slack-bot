@@ -28,6 +28,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Form;
 
 import com.github.rmannibucau.slack.configuration.SlackConfiguration;
+import com.github.rmannibucau.slack.service.MessageHandler;
 import com.github.rmannibucau.slack.websocket.SlackClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,9 @@ public class SlackConnector implements ServletContextListener {
 
     @Inject
     private SlackConfiguration configuration;
+
+    @Inject
+    private MessageHandler handler;
 
     private final AtomicReference<Session> session = new AtomicReference<>();
 
@@ -89,7 +93,8 @@ public class SlackConnector implements ServletContextListener {
     private void doConnect(final WebSocketContainer container) {
         final ConnectResponse response = getWsUrl();
         try {
-            session.set(container.connectToServer(new SlackClient(response.getSelf().getId(), configuration.postMessageEndpoint(), configuration.token()), URI.create(response.getUrl())));
+            session.set(container.connectToServer(new SlackClient(handler, response.getSelf().getId(),
+                    configuration.postMessageEndpoint(), configuration.token()), URI.create(response.getUrl())));
         } catch (final DeploymentException | IOException e) {
             log.error(e.getMessage(), e);
             throw new IllegalStateException(e);
@@ -100,12 +105,9 @@ public class SlackConnector implements ServletContextListener {
         final Client client = ClientBuilder.newClient();
         final ConnectResponse response;
         try {
-            response = client.target(configuration.rtmConnectEndpoint())
-                             .request(APPLICATION_JSON_TYPE)
-                             .post(entity(new Form()
-                                             .param("token", configuration.token())
-                                             .param("batch_presence_aware", "false"),
-                                     APPLICATION_FORM_URLENCODED_TYPE), ConnectResponse.class);
+            response = client.target(configuration.rtmConnectEndpoint()).request(APPLICATION_JSON_TYPE)
+                    .post(entity(new Form().param("token", configuration.token()).param("batch_presence_aware", "false"),
+                            APPLICATION_FORM_URLENCODED_TYPE), ConnectResponse.class);
             if (!response.isOk()) {
                 throw new IllegalStateException("Can't connect: " + response);
             }
