@@ -58,7 +58,7 @@ public class SlackClient {
             }
             break;
         default:
-            log.info("{}", message);
+            log.debug("{}", message);
         }
     }
 
