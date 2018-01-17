@@ -75,6 +75,9 @@
             </configuration>
           </execution>
         </executions>
+        <configuration>
+          <conf>src/main/meecrowave/conf</conf>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
