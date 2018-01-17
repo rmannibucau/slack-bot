@@ -1,5 +1,6 @@
 package com.github.rmannibucau.slack.websocket;
 
+import static java.util.Locale.ROOT;
 import static java.util.Optional.ofNullable;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -63,7 +64,8 @@ public class SlackClient {
             log.error("Error {}: {}", message.getError().getCode(), message.getError().getMsg());
             break;
         case "message":
-            if (message.getText() != null && !botId.equals(message.getUser()) && message.getUser() != null) {
+            if (message.getUser() != null && !message.getUser().toLowerCase(ROOT).contains("slackbot")
+                    && message.getText() != null && !botId.equals(message.getUser()) && message.getText().contains(botId)) {
                 onUserMessage(session, message);
             }
             break;
