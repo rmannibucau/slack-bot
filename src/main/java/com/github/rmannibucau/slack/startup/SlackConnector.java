@@ -2,16 +2,19 @@ package com.github.rmannibucau.slack.startup;
 
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -72,21 +75,33 @@ public class SlackConnector implements ServletContextListener {
                 }
             }
         }, 0, configuration.healthcheckTimeout(), MILLISECONDS);
+
+        // heroku keep up free dyno loop
+        final String pingEndpoint = configuration.pingEndpoint();
+        final ScheduledFuture<?> healthCheck = pingEndpoint != null ? ses.scheduleAtFixedRate(() -> {
+            final Client client = ClientBuilder.newClient();
+            try {
+                client.target(pingEndpoint).request(APPLICATION_JSON_TYPE).get(String.class);
+            } finally {
+                client.close();
+            }
+        }, 0, 25, MINUTES) : null;
+
         onClose = () -> {
-            scheduled.cancel(true);
+            Stream.of(scheduled, healthCheck).filter(Objects::nonNull).forEach(f -> f.cancel(true));
             ses.shutdownNow();
+            ofNullable(session.getAndSet(null)).ifPresent(s -> {
+                try {
+                    s.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "bye"));
+                } catch (final IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
         };
     }
 
     @Override
     public void contextDestroyed(final ServletContextEvent sce) {
-        ofNullable(session.getAndSet(null)).ifPresent(s -> {
-            try {
-                s.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "bye"));
-            } catch (final IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
         onClose.run();
     }
 

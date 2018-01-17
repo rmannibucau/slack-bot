@@ -16,4 +16,7 @@ public interface SlackConfiguration {
 
     @ConfigProperty(name = "endpoint.postMessage", defaultValue = "https://slack.com/api/chat.postMessage")
     String postMessageEndpoint();
+
+    @ConfigProperty(name = "endpoint.ping")
+    String pingEndpoint();
 }
