@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
+import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeShutdown;
@@ -26,9 +27,11 @@ import javax.enterprise.inject.spi.ProcessBean;
 import com.github.rmannibucau.slack.service.command.api.Command;
 import com.github.rmannibucau.slack.websocket.Message;
 
+import lombok.Data;
+
 public class CommandExtension implements Extension {
 
-    private final Map<String, ProcessBean<?>> commands = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, BeanHolder> commands = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     private final Collection<String> commandNames = new ArrayList<>();
 
@@ -71,7 +74,8 @@ public class CommandExtension implements Extension {
 
     void onProcessBean(@Observes final ProcessBean<?> bean) {
         final Command command = bean.getAnnotated().getAnnotation(Command.class);
-        if (command != null && commands.putIfAbsent(command.value(), bean) != null) {
+        if (command != null
+                && commands.putIfAbsent(command.value(), new BeanHolder(bean.getBean(), bean.getAnnotated())) != null) {
             errors.add(new IllegalArgumentException("Ambiguous command: " + command.value()));
         }
     }
@@ -97,7 +101,7 @@ public class CommandExtension implements Extension {
                 commandInstances.put(name::equalsIgnoreCase, instance);
                 // alias matching
                 Stream.of(pbean.getAnnotated().getAnnotation(Command.class).alias())
-                      .forEach(alias -> commandInstances.put(value -> value.contains(alias) || value.matches(alias), instance));
+                        .forEach(alias -> commandInstances.put(value -> value.contains(alias) || value.matches(alias), instance));
 
             });
             commands.clear();
@@ -106,5 +110,13 @@ public class CommandExtension implements Extension {
 
     void beforeShutdown(@Observes final BeforeShutdown beforeShutdown) {
         contexts.forEach(CreationalContext::release);
+    }
+
+    @Data
+    private static final class BeanHolder {
+
+        private final Bean<?> bean;
+
+        private final Annotated annotated;
     }
 }
