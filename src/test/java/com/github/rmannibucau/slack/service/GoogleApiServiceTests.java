@@ -19,7 +19,7 @@ public class GoogleApiServiceTests {
     @Test
     public void getNearbyRestaurant() {
 
-        final GooglePlaces.Result results = googleApiService.getNearbyRestaurant(null, 600, null);
+        final GooglePlaces.Result results = googleApiService.getNearbyRestaurant(null, 600, "sushi");
         assertNotNull(results);
     }
 }

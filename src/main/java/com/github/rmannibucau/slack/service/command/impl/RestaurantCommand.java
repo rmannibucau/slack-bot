@@ -1,18 +1,14 @@
 package com.github.rmannibucau.slack.service.command.impl;
 
-import static java.util.stream.Collectors.joining;
-
-import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
-import java.util.stream.IntStream;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.github.rmannibucau.slack.service.GooglePlaces;
 import com.github.rmannibucau.slack.service.command.api.Command;
 import com.github.rmannibucau.slack.websocket.Message;
+
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Command(value = "restaurant", alias = { "on mange ou", "on mange où" })
 @ApplicationScoped
@@ -21,44 +17,34 @@ public class RestaurantCommand implements Function<Message, String> {
     @Inject
     private GooglePlaces googlePlaces;
 
+    private String[] texts;
+
+    @PostConstruct
+    private void init() {
+        final Command command = getClass().getAnnotation(Command.class);
+        texts = Stream.concat(Stream.of(command.value()), Stream.of(command.alias()))
+                .toArray(String[]::new);
+    }
+
     @Override
     public String apply(final Message message) {
-        final int keywordIndex = message.getText().indexOf(" recherche ");
         final GooglePlaces.Result result = googlePlaces.getNearbyRestaurant(null,
                 null,
-                keywordIndex >= 0 ? message.getText().substring(keywordIndex).trim() : null);
+                Stream.of(texts).filter(t -> message.getText().contains(t)).findAny()
+                        .map(t -> message.getText().replace(t, "").trim()
+                                .replace(" de ", "")
+                                .replace(" des ", ""))
+                        .orElse(null));
         switch (result.getStatus()) {
         case "ZERO_RESULTS":
             return "Désolé, je n'ai pas trouvé de bonne proposition répondant à tes critères :cold_sweat:";
         case "OVER_QUERY_LIMIT":
             return "Je ne peux plus chercher, j'ai dépassé mes limites aujourd'hui :tired_face:";
         case "OK":
-            // todo improve with :
-            // - weather service to pass a more accurate radius..
-            // - with history of previous provided restaurant
-            // - support key words like : pizza, burger, sushi...
-            // - use the rating
-            int randomRestaurant = ThreadLocalRandom.current().nextInt(0, result.getRestaurants().size() + 1);
-            final GooglePlaces.Restaurant choice = result.getRestaurants().get(randomRestaurant);
-            String response = "*" + choice.getName() + "*";
-            if (choice.getRating() != null && choice.getRating() > 0) {
-                response += "\nRating: (" + choice.getRating() + ") "
-                        + IntStream.range(0, choice.getRating().intValue())
-                        .mapToObj(i -> ":star:")
-                        .collect(joining(""));
+            if (result.getRestaurants() == null || result.getRestaurants().isEmpty()) {
+                return "J'ai pas trouvé de restaurants :(";
             }
-            response += "\n_" + choice.getAddress() + "_";
-            if (choice.getGeometry() != null && choice.getGeometry().getLocation() != null) {
-                response += "\nhttps://www.google.fr/maps/@" + choice.getGeometry().getLocation().getLat() + ","
-                        + choice.getGeometry().getLocation().getLng() + ",20z";// zoom level
-            }
-            response += Optional.ofNullable(choice.getPhotos())
-                    .filter(p -> !p.isEmpty())
-                    .map(p -> p.iterator().next())
-                    .map(p -> "\n" + googlePlaces.getPhoto(p))
-                    .orElse("");
-
-            return response;
+            return googlePlaces.toMessage(googlePlaces.select(result));
         case "REQUEST_DENIED":
         case "INVALID_REQUEST":
         default:

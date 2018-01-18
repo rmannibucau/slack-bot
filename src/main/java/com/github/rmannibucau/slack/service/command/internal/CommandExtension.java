@@ -101,7 +101,7 @@ public class CommandExtension implements Extension {
                 // exact matching
                 commandInstances.put(name::equalsIgnoreCase, instance);
                 // alias matching
-                Stream.of(pbean.getAnnotated().getAnnotation(Command.class).alias())
+                Stream.concat(Stream.of(name), Stream.of(pbean.getAnnotated().getAnnotation(Command.class).alias()))
                         .forEach(alias -> commandInstances.put(value -> value.contains(alias) || value.matches(alias), instance));
 
             });

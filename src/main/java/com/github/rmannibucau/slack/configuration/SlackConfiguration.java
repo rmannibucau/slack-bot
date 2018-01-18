@@ -8,11 +8,17 @@ import org.apache.deltaspike.core.api.config.Configuration;
 @Configuration(prefix = "talend.slack.bot.")
 public interface SlackConfiguration {
 
-    @ConfigProperty(name = "token")
-    String token();
+    @ConfigProperty(name = "slack.api.token")
+    String slackToken();
 
     @ConfigProperty(name = "google.api.key")
     String googleApiKey();
+
+    @ConfigProperty(name = "openweather.api.key")
+    String openWeatherApiKey();
+
+    @ConfigProperty(name = "openweather.api.key")
+    String weatherBitApiKey();
 
     @ConfigProperty(name = "location", defaultValue = "47.204176,-1.5685397") //default from Nantes office
     String location();
@@ -31,6 +37,12 @@ public interface SlackConfiguration {
 
     @ConfigProperty(name = "endpoint.photo", defaultValue = "https://maps.googleapis.com/maps/api/place/photo")
     String photoEndpoint();
+
+    @ConfigProperty(name = "endpoint.openweather", defaultValue = "https://api.openweathermap.org/data/2.5/weather")
+    String openWeatherEndpoint();
+
+    @ConfigProperty(name = "endpoint.openweather", defaultValue = "https://api.weatherbit.io/v2.0/current")
+    String weatherBitEndpoint();
 
     @ConfigProperty(name = "endpoint.ping")
     String pingEndpoint();

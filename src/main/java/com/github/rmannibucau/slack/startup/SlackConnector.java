@@ -112,7 +112,7 @@ public class SlackConnector implements ServletContextListener {
         try {
             session.set(container.connectToServer(new SlackClient(handler, response.getSelf().getId(),
                             configuration.postMessageEndpoint(),
-                            configuration.token(),
+                            configuration.slackToken(),
                             Optional.ofNullable(configuration.defaultChannels()).orElseGet(Collections::emptyList)),
                     URI.create(response.getUrl())));
         } catch (final DeploymentException | IOException e) {
@@ -127,7 +127,7 @@ public class SlackConnector implements ServletContextListener {
         try {
             response = client.target(configuration.rtmConnectEndpoint()).request(APPLICATION_JSON_TYPE)
                     .post(entity(
-                            new Form().param("token", configuration.token()).param("batch_presence_aware", "false"),
+                            new Form().param("token", configuration.slackToken()).param("batch_presence_aware", "false"),
                             APPLICATION_FORM_URLENCODED_TYPE), ConnectResponse.class);
             if (!response.isOk()) {
                 throw new IllegalStateException("Can't connect: " + response);
