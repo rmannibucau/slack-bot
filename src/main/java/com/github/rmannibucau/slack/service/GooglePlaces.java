@@ -70,15 +70,15 @@ public class GooglePlaces {
     }
 
     public Result getNearbyRestaurant(final String location, final Integer radius,
-                                      final String keyword) {
+                                      final String userQuery) {
         WebTarget query = client.target(conf.restaurantEndpoint())
                 .queryParam("key", conf.googleApiKey())
                 .queryParam("location", conf.location())
                 .queryParam("type", "restaurant")
                 .queryParam("radius", radius == null || radius == 0 ? getDefaultRadius(weather.getWeather()) : radius);
 
-        if (keyword != null && !keyword.isEmpty()) {
-            query = query.queryParam("keyword", keyword);
+        if (userQuery != null && !userQuery.isEmpty()) {
+            query = query.queryParam("query", userQuery);
         }
 
         final Result result = query.request(APPLICATION_JSON_TYPE).get(Result.class);
