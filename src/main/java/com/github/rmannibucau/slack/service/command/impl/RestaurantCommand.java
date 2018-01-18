@@ -2,7 +2,7 @@ package com.github.rmannibucau.slack.service.command.impl;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -23,10 +23,10 @@ public class RestaurantCommand implements Function<Message, String> {
 
     @Override
     public String apply(final Message message) {
-        final String[] split = message.getText().split(" ");
-        final int keywordIndex = Arrays.binarySearch(split, "recherche");
-        final GooglePlaces.Result result = googlePlaces.getNearbyRestaurant(null, null,
-                keywordIndex >= 0 && split.length > keywordIndex ? split[keywordIndex + 1] : null);
+        final int keywordIndex = message.getText().indexOf(" recherche ");
+        final GooglePlaces.Result result = googlePlaces.getNearbyRestaurant(null,
+                null,
+                keywordIndex >= 0 ? message.getText().substring(keywordIndex).trim() : null);
         switch (result.getStatus()) {
         case "ZERO_RESULTS":
             return "Désolé, je n'ai pas trouvé de bonne proposition répondant à tes critères :cold_sweat:";
@@ -40,17 +40,25 @@ public class RestaurantCommand implements Function<Message, String> {
             // - use the rating
             int randomRestaurant = ThreadLocalRandom.current().nextInt(0, result.getRestaurants().size() + 1);
             final GooglePlaces.Restaurant choice = result.getRestaurants().get(randomRestaurant);
-            String repsonse = "*" + choice.getName() + "*";
+            String response = "*" + choice.getName() + "*";
             if (choice.getRating() != null && choice.getRating() > 0) {
-                repsonse += "\nRating: (" + choice.getRating() + ") "
-                        + IntStream.range(0, choice.getRating().intValue()).mapToObj(i -> ":star:").collect(joining(""));
+                response += "\nRating: (" + choice.getRating() + ") "
+                        + IntStream.range(0, choice.getRating().intValue())
+                        .mapToObj(i -> ":star:")
+                        .collect(joining(""));
             }
-            repsonse += "\n_" + choice.getAddress() + "_";
+            response += "\n_" + choice.getAddress() + "_";
             if (choice.getGeometry() != null && choice.getGeometry().getLocation() != null) {
-                repsonse += "\nhttps://www.google.fr/maps/@" + choice.getGeometry().getLocation().getLat() + ","
+                response += "\nhttps://www.google.fr/maps/@" + choice.getGeometry().getLocation().getLat() + ","
                         + choice.getGeometry().getLocation().getLng() + ",20z";// zoom level
             }
-            return repsonse;
+            response += Optional.ofNullable(choice.getPhotos())
+                    .filter(p -> !p.isEmpty())
+                    .map(p -> p.iterator().next())
+                    .map(p -> "\n" + googlePlaces.getPhoto(p))
+                    .orElse("");
+
+            return response;
         case "REQUEST_DENIED":
         case "INVALID_REQUEST":
         default:

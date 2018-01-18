@@ -29,6 +29,9 @@ public interface SlackConfiguration {
     @ConfigProperty(name = "endpoint.restaurant", defaultValue = "https://maps.googleapis.com/maps/api/place/nearbysearch/json")
     String restaurantEndpoint();
 
+    @ConfigProperty(name = "endpoint.photo", defaultValue = "https://maps.googleapis.com/maps/api/place/photo")
+    String photoEndpoint();
+
     @ConfigProperty(name = "endpoint.ping")
     String pingEndpoint();
 

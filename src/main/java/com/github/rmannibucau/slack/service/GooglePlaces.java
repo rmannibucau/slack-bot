@@ -2,13 +2,13 @@ package com.github.rmannibucau.slack.service;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import com.github.rmannibucau.slack.configuration.SlackConfiguration;
@@ -25,26 +25,33 @@ public class GooglePlaces {
     @Inject
     private SlackConfiguration conf;
 
+    @Inject
+    private Client client;
+
     public Result getNearbyRestaurant(final String location, final Integer radius,
             final String keyword) {
-        final Client client = ClientBuilder.newClient();
-        try {
-            final WebTarget query = client.target(conf.restaurantEndpoint())
-                    .queryParam("key", conf.googleApiKey())
-                    .queryParam("location", conf.location())
-                    .queryParam("type", "restaurant")
-                    .queryParam("radius", radius == null || radius == 0 ? DEFAULT_RADIUS : radius);
+        final WebTarget query = client.target(conf.restaurantEndpoint())
+                .queryParam("key", conf.googleApiKey())
+                .queryParam("location", conf.location())
+                .queryParam("type", "restaurant")
+                .queryParam("radius", radius == null || radius == 0 ? DEFAULT_RADIUS : radius);
 
-            if (keyword != null && !keyword.isEmpty()) {
-                query.queryParam("keyword", keyword);
-            }
-
-            return query.request(APPLICATION_JSON_TYPE)
-                    .get(Result.class);
-        } finally {
-            client.close();
+        if (keyword != null && !keyword.isEmpty()) {
+            query.queryParam("keyword", keyword);
         }
 
+        return query.request(APPLICATION_JSON_TYPE)
+                .get(Result.class);
+    }
+
+    public String getPhoto(Photo photo) {
+        return client.target(conf.photoEndpoint())
+                .queryParam("key", conf.googleApiKey())
+                .queryParam("maxwidth", Math.min(150, photo.getWidth()))
+                .queryParam("photoreference", photo.getReference())
+                .request()
+                .get()
+                .getHeaderString("location");
     }
 
     @Data
@@ -79,6 +86,19 @@ public class GooglePlaces {
         private OpeningHours openingHours;
 
         private Geometry geometry;
+
+        private Collection<Photo> photos;
+    }
+
+    @Data
+    public static class Photo {
+
+        @JsonbProperty("photo_reference")
+        private String reference;
+
+        private int height;
+
+        private int width;
     }
 
     @Data
