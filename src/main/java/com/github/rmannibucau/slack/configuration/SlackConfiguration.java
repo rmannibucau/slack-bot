@@ -1,5 +1,7 @@
 package com.github.rmannibucau.slack.configuration;
 
+import java.util.List;
+
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 import org.apache.deltaspike.core.api.config.Configuration;
 
@@ -29,4 +31,7 @@ public interface SlackConfiguration {
 
     @ConfigProperty(name = "endpoint.ping")
     String pingEndpoint();
+
+    @ConfigProperty(name = "channels")
+    List<String> defaultChannels();
 }
