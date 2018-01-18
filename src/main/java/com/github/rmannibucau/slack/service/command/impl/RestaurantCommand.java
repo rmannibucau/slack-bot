@@ -2,6 +2,7 @@ package com.github.rmannibucau.slack.service.command.impl;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -21,8 +22,11 @@ public class RestaurantCommand implements Function<Message, String> {
     private GooglePlaces googlePlaces;
 
     @Override
-    public String apply(Message message) {
-        final GooglePlaces.Result result = googlePlaces.getNearbyRestaurant(null, null, null);
+    public String apply(final Message message) {
+        final String[] split = message.getText().split(" ");
+        final int keywordIndex = Arrays.binarySearch(split, "recherche");
+        final GooglePlaces.Result result = googlePlaces.getNearbyRestaurant(null, null,
+                keywordIndex >= 0 && split.length > keywordIndex ? split[keywordIndex + 1] : null);
         switch (result.getStatus()) {
         case "ZERO_RESULTS":
             return "Désolé, je n'ai pas trouvé de bonne proposition répondant à tes critères :cold_sweat:";
@@ -39,8 +43,7 @@ public class RestaurantCommand implements Function<Message, String> {
             String repsonse = "*" + choice.getName() + "*";
             if (choice.getRating() != null && choice.getRating() > 0) {
                 repsonse += "\nRating: (" + choice.getRating() + ") "
-                        + IntStream.range(0, choice.getRating().intValue()).mapToObj(i -> ":star:")
-                        .collect(joining(""));
+                        + IntStream.range(0, choice.getRating().intValue()).mapToObj(i -> ":star:").collect(joining(""));
             }
             repsonse += "\n_" + choice.getAddress() + "_";
             if (choice.getGeometry() != null && choice.getGeometry().getLocation() != null) {

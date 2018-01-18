@@ -83,7 +83,7 @@ public class CommandExtension implements Extension {
 
     void afterDeploymentValidation(@Observes final AfterDeploymentValidation afterDeploymentValidation,
             final BeanManager beanManager) {
-        if (errors.isEmpty()) {
+        if (!errors.isEmpty()) {
             errors.forEach(afterDeploymentValidation::addDeploymentProblem);
         } else {
             commandNames.addAll(commands.keySet());
@@ -105,8 +105,8 @@ public class CommandExtension implements Extension {
                         .forEach(alias -> commandInstances.put(value -> value.contains(alias) || value.matches(alias), instance));
 
             });
-            commands.clear();
         }
+        commands.clear();
     }
 
     void beforeShutdown(@Observes final BeforeShutdown beforeShutdown) {

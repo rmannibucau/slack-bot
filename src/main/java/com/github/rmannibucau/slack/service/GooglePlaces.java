@@ -35,7 +35,7 @@ public class GooglePlaces {
                     .queryParam("type", "restaurant")
                     .queryParam("radius", radius == null || radius == 0 ? DEFAULT_RADIUS : radius);
 
-            if (keyword != null && keyword.isEmpty()) {
+            if (keyword != null && !keyword.isEmpty()) {
                 query.queryParam("keyword", keyword);
             }
 
