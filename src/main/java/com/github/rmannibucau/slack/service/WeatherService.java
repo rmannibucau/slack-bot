@@ -75,7 +75,7 @@ public class WeatherService {
         if (code >= 957 && code < 1000) {
             return ":nuage_tornade:";
         }
-        return ":soleil_avec_visage:";
+        return ":lunettes_de_soleil:";
     }
 
     @Data
@@ -109,7 +109,7 @@ public class WeatherService {
                 }
                 return ":nuage:";
             }
-            return ":soleil_avec_visage:";
+            return ":lunettes_de_soleil:";
         }
 
         @Override
@@ -148,7 +148,7 @@ public class WeatherService {
         @Override
         public boolean isRisky() {
             final String current = toMessage();
-            return Stream.of(":soleil_avec_visage:", ":nuage:").anyMatch(current::equals);
+            return Stream.of(":lunettes_de_soleil:", ":nuage:").anyMatch(current::equals);
         }
 
         @Override
@@ -157,7 +157,7 @@ public class WeatherService {
                 if (main != null && main.getHumidity() > 75) {
                     return ":nuage_et_pluie:";
                 }
-                return ":soleil_avec_visage:";
+                return ":lunettes_de_soleil:";
             }
             final Prevision prevision = weather.iterator().next();
             return toEmoji(prevision.id);
