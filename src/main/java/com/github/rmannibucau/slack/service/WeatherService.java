@@ -80,6 +80,8 @@ public class WeatherService {
 
     @Data
     public static class WeatherBitData implements Weather { // https://www.weatherbit.io/api/weather-current
+        @JsonbProperty("city_name")
+        private String cityName;
 
         @JsonbProperty("app_temp")
         private Double appTemp;
@@ -108,6 +110,11 @@ public class WeatherService {
                 return ":nuage:";
             }
             return ":soleil_avec_visage:";
+        }
+
+        @Override
+        public String location() {
+            return cityName;
         }
     }
 
@@ -155,11 +162,18 @@ public class WeatherService {
             final Prevision prevision = weather.iterator().next();
             return toEmoji(prevision.id);
         }
+
+        @Override
+        public String location() {
+            return name;
+        }
     }
 
     public interface Weather {
         boolean isRisky();
 
         String toMessage();
+
+        String location();
     }
 }
