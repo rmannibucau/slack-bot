@@ -2,8 +2,6 @@ package com.github.rmannibucau.slack.service;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import org.apache.meecrowave.junit.MonoMeecrowave;
@@ -17,11 +15,11 @@ public class GoogleApiServiceTests {
     @Inject
     private GooglePlaces googleApiService;
 
-    @Ignore
+
     @Test
     public void getNearbyRestaurant() {
 
-        final List<GooglePlaces.Restaurant> results = googleApiService.getNearbyRestaurant(null, 600, null);
+        final GooglePlaces.Result results = googleApiService.getNearbyRestaurant(null, 600, null);
         assertNotNull(results);
     }
 }
