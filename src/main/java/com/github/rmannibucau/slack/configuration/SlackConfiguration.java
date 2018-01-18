@@ -17,7 +17,7 @@ public interface SlackConfiguration {
     @ConfigProperty(name = "openweather.api.key")
     String openWeatherApiKey();
 
-    @ConfigProperty(name = "openweather.api.key")
+    @ConfigProperty(name = "weatherbit.api.key")
     String weatherBitApiKey();
 
     @ConfigProperty(name = "location", defaultValue = "47.204176,-1.5685397") //default from Nantes office
