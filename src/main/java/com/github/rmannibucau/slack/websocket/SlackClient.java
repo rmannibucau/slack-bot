@@ -100,7 +100,7 @@ public class SlackClient {
         response.setText(handler.createResponse(message));
 
         // espacing
-        response.setText(response.getText().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "// cc <@"
+        response.setText(response.getText().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + " // cc <@"
                 + message.getUser() + ">");
         log.debug("Sending {}", response);
         final PostMessageResponse postMessageResponse = target.request(APPLICATION_JSON_TYPE)

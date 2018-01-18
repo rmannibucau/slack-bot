@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 public @interface Command {
     String value();
+    String[] alias() default {};
 }

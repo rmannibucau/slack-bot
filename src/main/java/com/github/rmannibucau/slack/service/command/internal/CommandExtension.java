@@ -1,16 +1,17 @@
 package com.github.rmannibucau.slack.service.command.internal;
 
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toMap;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.spi.CreationalContext;
@@ -27,9 +28,11 @@ import com.github.rmannibucau.slack.websocket.Message;
 
 public class CommandExtension implements Extension {
 
-    private final Map<String, Bean<?>> commands = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, ProcessBean<?>> commands = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    private final Map<String, Function<Message, String>> commandInstances = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Collection<String> commandNames = new ArrayList<>();
+
+    private final Map<Predicate<String>, Function<Message, String>> commandInstances = new HashMap<>();
 
     private final Collection<Throwable> errors = new ArrayList<>();
 
@@ -58,7 +61,7 @@ public class CommandExtension implements Extension {
     private Function<Message, String> defaultCommand = m -> "Je ne comprends pas ! :sleepy: \nSi tu veux m'améliorer, fait une PR sur https://github.com/rmannibucau/slack-bot";
 
     public Stream<String> commandNames() {
-        return commandInstances.keySet().stream();
+        return commandNames.stream();
     }
 
     public Function<Message, String> findCommand(final String command) {
@@ -68,7 +71,7 @@ public class CommandExtension implements Extension {
 
     void onProcessBean(@Observes final ProcessBean<?> bean) {
         final Command command = bean.getAnnotated().getAnnotation(Command.class);
-        if (command != null && commands.putIfAbsent(command.value(), bean.getBean()) != null) {
+        if (command != null && commands.putIfAbsent(command.value(), bean) != null) {
             errors.add(new IllegalArgumentException("Ambiguous command: " + command.value()));
         }
     }
@@ -78,17 +81,25 @@ public class CommandExtension implements Extension {
         if (errors.isEmpty()) {
             errors.forEach(afterDeploymentValidation::addDeploymentProblem);
         } else {
-            commandInstances.putAll(commands.entrySet().stream().collect(toMap(Map.Entry::getKey, entry -> {
-                final Bean<?> bean = entry.getValue();
+            commandNames.addAll(commands.keySet());
+            // direct matching
+            commands.forEach((name, pbean) -> {
                 final CreationalContext<Object> creationalContext = beanManager.createCreationalContext(null);
+                final Bean<?> bean = pbean.getBean();
                 if (!beanManager.isNormalScope(bean.getScope())) {
                     contexts.add(creationalContext);
                 }
-                return Function.class.cast(beanManager.getReference(
+                final Function<Message, String> instance = Function.class.cast(beanManager.getReference(
                         beanManager.resolve(beanManager.getBeans(bean.getBeanClass(),
                                 bean.getQualifiers().toArray(new Annotation[bean.getQualifiers().size()]))),
                         commandType, creationalContext));
-            })));
+                // exact matching
+                commandInstances.put(name::equalsIgnoreCase, instance);
+                // alias matching
+                Stream.of(pbean.getAnnotated().getAnnotation(Command.class).alias())
+                      .forEach(alias -> commandInstances.put(value -> value.contains(alias) || value.matches(alias), instance));
+
+            });
             commands.clear();
         }
     }

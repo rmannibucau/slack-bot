@@ -10,7 +10,7 @@ import com.github.rmannibucau.slack.service.GooglePlaces;
 import com.github.rmannibucau.slack.service.command.api.Command;
 import com.github.rmannibucau.slack.websocket.Message;
 
-@Command("restaurant")
+@Command(value = "restaurant", alias = { "on mange ou", "on mange où" })
 @ApplicationScoped
 public class RestaurantCommand implements Function<Message, String> {
 
