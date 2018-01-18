@@ -1,7 +1,5 @@
 package com.github.rmannibucau.slack.service.command.internal;
 
-import static java.util.Optional.ofNullable;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -68,8 +66,11 @@ public class CommandExtension implements Extension {
     }
 
     public Function<Message, String> findCommand(final String command) {
-        return ofNullable(commandInstances.get(command))
-                .orElseGet(() -> commandInstances.getOrDefault(command.trim().split(" ")[0], defaultCommand));
+        return commandInstances.entrySet().stream()
+                        .filter(e -> e.getKey().test(command))
+                        .map(Map.Entry::getValue)
+                        .findFirst()
+                        .orElse(defaultCommand);
     }
 
     void onProcessBean(@Observes final ProcessBean<?> bean) {
