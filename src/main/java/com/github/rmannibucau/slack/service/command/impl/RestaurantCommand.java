@@ -1,7 +1,10 @@
 package com.github.rmannibucau.slack.service.command.impl;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -33,8 +36,13 @@ public class RestaurantCommand implements Function<Message, String> {
             // - use the rating
             int randomRestaurant = ThreadLocalRandom.current().nextInt(0, result.getRestaurants().size() + 1);
             final GooglePlaces.Restaurant choice = result.getRestaurants().get(randomRestaurant);
-            String repsonse = "*" + choice.getName() + "*\n" + "_" + choice.getAddress() + "_\n" + "Rating: "
-                    + choice.getRating();
+            String repsonse = "*" + choice.getName() + "*";
+            if (choice.getRating() != null && choice.getRating() > 0) {
+                repsonse += "\nRating: (" + choice.getRating() + ") "
+                        + IntStream.range(0, choice.getRating().intValue()).mapToObj(i -> ":star:")
+                        .collect(joining(""));
+            }
+            repsonse += "\n_" + choice.getAddress() + "_";
             if (choice.getGeometry() != null && choice.getGeometry().getLocation() != null) {
                 repsonse += "\nhttps://www.google.fr/maps/@" + choice.getGeometry().getLocation().getLat() + ","
                         + choice.getGeometry().getLocation().getLng() + ",20z";// zoom level

@@ -5,6 +5,7 @@ import static java.util.Optional.ofNullable;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.enterprise.context.Dependent;
@@ -19,10 +20,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import com.github.rmannibucau.slack.service.MessageHandler;
+
 import org.apache.johnzon.websocket.mapper.JohnzonTextDecoder;
 import org.apache.johnzon.websocket.mapper.JohnzonTextEncoder;
-
-import com.github.rmannibucau.slack.service.MessageHandler;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,17 +45,23 @@ public class SlackClient {
 
     private WebTarget target;
 
-    public SlackClient(final MessageHandler handler, final String botId, final String postMessageEndpoint, final String token) {
+    private List<String> defaultChannels;
+
+    public SlackClient(final MessageHandler handler, final String botId, final String postMessageEndpoint,
+            final String token, final List<String> defaultChannels) {
         this.botId = botId;
         this.postMessageEndpoint = postMessageEndpoint;
         this.token = token;
         this.handler = handler;
+        this.defaultChannels = defaultChannels;
     }
 
     @OnOpen
     public void onOpen(final Session session) {
         client = ClientBuilder.newClient();
         target = client.target(postMessageEndpoint);
+        defaultChannels.forEach(c -> send("Hello guys", null, c));
+
     }
 
     @OnMessage
@@ -65,8 +72,9 @@ public class SlackClient {
             break;
         case "message":
             if (message.getUser() != null && !message.getUser().toLowerCase(ROOT).contains("slackbot")
-                    && message.getText() != null && !botId.equals(message.getUser()) && message.getText().contains(botId)) {
-                onUserMessage(session, message);
+                    && message.getText() != null && !botId.equals(message.getUser()) && message.getText()
+                    .contains(botId)) {
+                onUserMessage(message);
             }
             break;
         default:
@@ -81,27 +89,30 @@ public class SlackClient {
 
     @OnClose
     public void onClose(final Session session, final CloseReason reason) {
+        defaultChannels.forEach(c -> send("Bye bye", null, c));
         log.debug("Closing session {} cause {}", session.getId(), reason.getCloseCode());
         if (client != null) {
             client.close();
         }
     }
 
-    private void onUserMessage(final Session session, final Message message) {
+    private void onUserMessage(final Message message) {
         // sanitize
         message.setText(message.getText().replace("<@" + botId + ">", "").trim());
+        send(handler.createResponse(message)
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;") + " // cc <@" + message.getUser() + ">", message.getId(), message.getChannel());
+    }
 
+    private void send(final String message, final Long id, final String chan) {
         final Message response = new Message();
-        response.setId(ofNullable(message.getId()).orElseGet(messageId::incrementAndGet));
+        response.setId(ofNullable(id).orElseGet(messageId::incrementAndGet));
         response.setUser(botId);
         response.setAs_user(true);
         response.setType("message");
-        response.setChannel(message.getChannel());
-        response.setText(handler.createResponse(message));
-
-        // espacing
-        response.setText(response.getText().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + " // cc <@"
-                + message.getUser() + ">");
+        response.setChannel(chan);
+        response.setText(message);
         log.debug("Sending {}", response);
         final PostMessageResponse postMessageResponse = target.request(APPLICATION_JSON_TYPE)
                 .header("Authorization", "Bearer " + token)
@@ -120,7 +131,7 @@ public class SlackClient {
 
         /*
          * to debug the available messages
-         * 
+         *
          * @Override
          * public Object decode(Reader stream) throws DecodeException {
          * try (final StringWriter w = new StringWriter()) {
