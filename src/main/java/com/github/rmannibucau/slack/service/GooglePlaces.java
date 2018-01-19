@@ -23,8 +23,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 @ApplicationScoped
 public class GooglePlaces {
 
-    private final static int RAIN_DEFAULT_RADIUS = 400;
-    private final static int DEFAULT_RADIUS = 600;
+    private final static int RAIN_DEFAULT_RADIUS = 600;
+    private final static int DEFAULT_RADIUS = 800;
 
     @Inject
     private WeatherService weather;
