@@ -9,6 +9,8 @@ public class ConnectResponse {
 
     private String url;
 
+    private String error;
+
     private Self self;
 
     @Data

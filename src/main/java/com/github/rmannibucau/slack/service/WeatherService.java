@@ -88,14 +88,14 @@ public class WeatherService {
 
         private Double clouds;
         private Double uv;
-        private String precip;
+        private Double precip;
         private Double temp;
         private Double rh; // relative humidity
         private WeatherBitCode weather;
 
         @Override
         public boolean isRisky() {
-            return (appTemp != null && appTemp < 0) || (rh != null && rh > 75) || (clouds != null && clouds > 75);
+            return (appTemp != null && appTemp < 0) || (rh != null && rh > 75) || (clouds != null && clouds > 85) || (precip != null && precip > 0.2);
         }
 
         @Override

@@ -130,7 +130,7 @@ public class SlackConnector implements ServletContextListener {
                             new Form().param("token", configuration.slackToken()).param("batch_presence_aware", "false"),
                             APPLICATION_FORM_URLENCODED_TYPE), ConnectResponse.class);
             if (!response.isOk()) {
-                throw new IllegalStateException("Can't connect: " + response);
+                throw new IllegalStateException("Can't connect: " + response.getError());
             }
         } finally {
             client.close();
