@@ -102,7 +102,8 @@ public class SlackClient {
         send(handler.createResponse(message)
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
-                .replace(">", "&gt;") + " // cc <@" + message.getUser() + ">", message.getId(), message.getChannel());
+                .replace(">", "&gt;")
+                /*+ " // cc <@" + message.getUser() + ">" */, message.getId(), message.getChannel());
     }
 
     private void send(final String message, final Long id, final String chan) {
