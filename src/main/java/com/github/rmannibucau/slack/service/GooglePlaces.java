@@ -54,7 +54,7 @@ public class GooglePlaces {
                     .mapToObj(i -> ":star:")
                     .collect(joining(""));
         }
-        response += "\nMétéo à " + Optional.ofNullable(weather.location()).orElse("-") + ": " + weather.toMessage();
+        response += "\nMétéo: " + Optional.ofNullable(weather.location()).orElse("-") + " " + weather.toMessage();
         response += "\n_" + choice.getAddress() + "_";
         if (choice.getGeometry() != null && choice.getGeometry().getLocation() != null) {
             response += "\nhttps://www.google.fr/maps/@" + choice.getGeometry().getLocation().getLat() + ","

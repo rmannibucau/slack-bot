@@ -55,27 +55,27 @@ public class WeatherService {
 
     private static String toEmoji(final int code) {
         if (code >= 200 && code < 300) {
-            return ":nuage_pluie_tonnerre:";
+            return ":thunder_cloud_and_rain:";
         }
         if (code >= 300 && code < 400) {
-            return ":brouillard:";
+            return ":foggy:";
         }
         if (code >= 500 && code < 600) {
-            return ":nuage_et_pluie:";
+            return ":rain_cloud:";
         }
         if (code >= 600 && code < 700) {
-            return ":flocon_de_neige:";
+            return ":snowflake:";
         }
         if ((code >= 700 && code < 800) || (code >= 900 && code < 950)) {
-            return ":volcan:";
+            return ":volcano:";
         }
         if (code > 800 && code < 900) {
-            return ":nuage:";
+            return ":cloud:";
         }
         if (code >= 957 && code < 1000) {
-            return ":nuage_tornade:";
+            return ":tornado_cloud:";
         }
-        return ":lunettes_de_soleil:";
+        return ":sunny:";
     }
 
     @Data
@@ -105,11 +105,11 @@ public class WeatherService {
             }
             if (clouds != null && clouds > 10) {
                 if (rh != null && rh > 50) {
-                    return ":nuage_et_pluie:";
+                    return ":rain_cloud:";
                 }
-                return ":nuage:";
+                return ":cloud:";
             }
-            return ":lunettes_de_soleil:";
+            return ":sunny:";
         }
 
         @Override
@@ -148,16 +148,16 @@ public class WeatherService {
         @Override
         public boolean isRisky() {
             final String current = toMessage();
-            return Stream.of(":lunettes_de_soleil:", ":nuage:").anyMatch(current::equals);
+            return Stream.of(":sunny:", ":cloud:").anyMatch(current::equals);
         }
 
         @Override
         public String toMessage() {
             if (weather == null || weather.isEmpty()) {
                 if (main != null && main.getHumidity() > 75) {
-                    return ":nuage_et_pluie:";
+                    return ":rain_cloud:";
                 }
-                return ":lunettes_de_soleil:";
+                return ":sunny:";
             }
             final Prevision prevision = weather.iterator().next();
             return toEmoji(prevision.id);
