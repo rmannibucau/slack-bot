@@ -1,7 +1,9 @@
 package com.github.rmannibucau.slack.service;
 
-import com.github.rmannibucau.slack.configuration.SlackConfiguration;
-import lombok.Data;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -9,10 +11,10 @@ import javax.inject.Inject;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+
+import com.github.rmannibucau.slack.configuration.SlackConfiguration;
+
+import lombok.Data;
 
 @ApplicationScoped
 public class WeatherService {
@@ -51,6 +53,11 @@ public class WeatherService {
                 .filter(d -> !d.isEmpty())
                 .map(d -> d.iterator().next())
                 .orElse(new WeatherBitData());
+    }
+
+    public boolean isRisky(final Weather weather) {
+        final String message = weather.toMessage();
+        return Stream.of(":sunny:", ":cloud:").noneMatch(message::equals);
     }
 
     private static String toEmoji(final int code) {
@@ -94,17 +101,15 @@ public class WeatherService {
         private WeatherBitCode weather;
 
         @Override
-        public boolean isRisky() {
-            return (appTemp != null && appTemp < 0) || (rh != null && rh > 75) || (clouds != null && clouds > 85) || (precip != null && precip > 0.2);
-        }
-
-        @Override
         public String toMessage() {
             if (weather != null && weather.code != null) {
                 return toEmoji(weather.code);
             }
             if (clouds != null && clouds > 10) {
                 if (rh != null && rh > 50) {
+                    return ":rain_cloud:";
+                }
+                if (precip != null && precip > 5) {
                     return ":rain_cloud:";
                 }
                 return ":cloud:";
@@ -146,12 +151,6 @@ public class WeatherService {
         private Collection<Prevision> weather;
 
         @Override
-        public boolean isRisky() {
-            final String current = toMessage();
-            return Stream.of(":sunny:", ":cloud:").anyMatch(current::equals);
-        }
-
-        @Override
         public String toMessage() {
             if (weather == null || weather.isEmpty()) {
                 if (main != null && main.getHumidity() > 75) {
@@ -170,8 +169,6 @@ public class WeatherService {
     }
 
     public interface Weather {
-        boolean isRisky();
-
         String toMessage();
 
         String location();

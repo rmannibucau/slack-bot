@@ -1,23 +1,25 @@
 package com.github.rmannibucau.slack.service;
 
-import com.github.rmannibucau.slack.configuration.SlackConfiguration;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.stream.Collectors.joining;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.json.bind.annotation.JsonbProperty;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.WebTarget;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.joining;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
+
+import com.github.rmannibucau.slack.configuration.SlackConfiguration;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @ApplicationScoped
@@ -89,7 +91,7 @@ public class GooglePlaces {
     }
 
     private int getDefaultRadius(final WeatherService.Weather weather) {
-        return weather.isRisky() ? RAIN_DEFAULT_RADIUS : DEFAULT_RADIUS;
+        return this.weather.isRisky(weather) ? RAIN_DEFAULT_RADIUS : DEFAULT_RADIUS;
     }
 
     private String getPhoto(final Photo photo) {
