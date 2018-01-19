@@ -9,14 +9,14 @@ import com.github.rmannibucau.slack.service.WeatherService;
 import com.github.rmannibucau.slack.service.command.api.Command;
 import com.github.rmannibucau.slack.websocket.Message;
 
-@Command(value = "weather", alias = { "météo", "meteo" })
+@Command(value = "qui est le plus beau", alias = "qui est le plus fort")
 @ApplicationScoped
-public class WeatherCommand implements Function<Message, String> {
+public class WhosTheBestCommand implements Function<Message, String> {
     @Inject
     private WeatherService service;
 
     @Override
     public String apply(final Message message) {
-        return service.getWeather().toMessage();
+        return "C'est toi mon maître";
     }
 }
