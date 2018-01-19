@@ -50,7 +50,7 @@ public class GooglePlaces {
         String response = "*" + choice.getName() + "*";
         if (choice.getRating() != null && choice.getRating() > 0) {
             response += "\nRating: (" + choice.getRating() + ") "
-                    + IntStream.range(0, choice.getRating().intValue())
+                    + IntStream.rangeClosed(0, choice.getRating().intValue())
                     .mapToObj(i -> ":star:")
                     .collect(joining(""));
         }
