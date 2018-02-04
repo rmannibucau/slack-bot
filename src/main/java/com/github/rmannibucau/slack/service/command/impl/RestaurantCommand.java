@@ -1,16 +1,17 @@
 package com.github.rmannibucau.slack.service.command.impl;
 
-import com.github.rmannibucau.slack.service.GooglePlaces;
-import com.github.rmannibucau.slack.service.command.api.Command;
-import com.github.rmannibucau.slack.websocket.Message;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
-@Command(value = "restaurant", alias = { "on mange ou", "on mange où" })
+import com.github.rmannibucau.slack.service.GooglePlaces;
+import com.github.rmannibucau.slack.service.command.api.Command;
+import com.github.rmannibucau.slack.websocket.Message;
+
+@Command(value = "restaurant", alias = "mange")
 @ApplicationScoped
 public class RestaurantCommand implements Function<Message, String> {
 

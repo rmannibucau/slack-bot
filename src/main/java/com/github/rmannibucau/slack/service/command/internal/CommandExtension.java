@@ -59,7 +59,7 @@ public class CommandExtension implements Extension {
         }
     };
 
-    private Function<Message, String> defaultCommand = m -> "Je ne comprends pas ! :sleepy: \nSi tu veux m'améliorer, fait une PR sur https://github.com/rmannibucau/slack-bot";
+    private Function<Message, String> defaultCommand = m -> "Je ne comprends pas ! :sleepy:";
 
     public Stream<String> commandNames() {
         return commandNames.stream();
