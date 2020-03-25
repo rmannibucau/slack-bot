@@ -99,11 +99,15 @@ public class SlackClient {
     private void onUserMessage(final Message message) {
         // sanitize
         message.setText(message.getText().replace("<@" + botId + ">", "").trim());
-        send(handler.createResponse(message)
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                /*+ " // cc <@" + message.getUser() + ">" */, message.getId(), message.getChannel());
+        try {
+            send(handler.createResponse(message)
+                            .replace("&", "&amp;")
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+                    /*+ " // cc <@" + message.getUser() + ">" */, message.getId(), message.getChannel());
+        } catch (final RuntimeException re) {
+            log.error(re.getMessage(), re);
+        }
     }
 
     private void send(final String message, final Long id, final String chan) {
