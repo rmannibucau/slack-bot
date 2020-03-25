@@ -110,7 +110,8 @@ public class SlackConnector implements ServletContextListener {
     private void doConnect(final WebSocketContainer container) {
         final ConnectResponse response = getWsUrl();
         try {
-            session.set(container.connectToServer(new SlackClient(handler, response.getSelf().getId(),
+            session.set(container.connectToServer(new SlackClient(handler,
+                            configuration.botId() == null || configuration.botId().isEmpty() ? response.getSelf().getId() : configuration.botId(),
                             configuration.postMessageEndpoint(),
                             configuration.slackToken(),
                             Optional.ofNullable(configuration.defaultChannels()).orElseGet(Collections::emptyList)),
@@ -130,6 +131,7 @@ public class SlackConnector implements ServletContextListener {
                             new Form().param("token", configuration.slackToken()).param("batch_presence_aware", "false"),
                             APPLICATION_FORM_URLENCODED_TYPE), ConnectResponse.class);
             if (!response.isOk()) {
+                log.error("Fail to get ws url");
                 throw new IllegalStateException("Can't connect: " + response.getError());
             }
         } finally {

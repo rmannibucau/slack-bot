@@ -1,15 +1,18 @@
 package com.github.rmannibucau.slack.configuration;
 
-import java.util.List;
-
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 import org.apache.deltaspike.core.api.config.Configuration;
+
+import java.util.List;
 
 @Configuration(prefix = "talend.slack.bot.")
 public interface SlackConfiguration {
 
     @ConfigProperty(name = "slack.api.token")
     String slackToken();
+
+    @ConfigProperty(name = "slack.botId")
+    String botId();
 
     @ConfigProperty(name = "google.api.key")
     String googleApiKey();
@@ -20,7 +23,7 @@ public interface SlackConfiguration {
     @ConfigProperty(name = "weatherbit.api.key")
     String weatherBitApiKey();
 
-    @ConfigProperty(name = "location", defaultValue = "47.204176,-1.5685397") //default from Nantes office
+    @ConfigProperty(name = "location", defaultValue = "43.6096485,3.9097431") // Office
     String location();
 
     @ConfigProperty(name = "healthcheck.timeout", defaultValue = "30000")

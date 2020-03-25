@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.annotation.JsonbProperty;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 
@@ -91,7 +92,12 @@ public class GooglePlaces {
     }
 
     private int getDefaultRadius(final WeatherService.Weather weather) {
-        return this.weather.isRisky(weather) ? RAIN_DEFAULT_RADIUS : DEFAULT_RADIUS;
+        try {
+            return this.weather.isRisky(weather) ? RAIN_DEFAULT_RADIUS : DEFAULT_RADIUS;
+        } catch (final WebApplicationException wae) {
+            log.warn(wae.getMessage());
+            return DEFAULT_RADIUS;
+        }
     }
 
     private String getPhoto(final Photo photo) {
